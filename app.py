@@ -86,16 +86,36 @@ def main(page: ft.Page):
             }
 
 
+
     def lista_clientes():
         url = f"http://10.135.232.31:5000/lista_clientes"
 
         resposta = requests.get(url)
 
         if resposta.status_code == 200:
-            print("Lista Clientes:", resposta.json())
-            return resposta.json()
+            dados_clientes = resposta.json()
+            print(dados_clientes)
+            return dados_clientes
         else:
             return {"erro": resposta.json()}
+
+    def exibir_clientes():
+        lv.controls.clear()
+        resultado_lista = lista_clientes()
+        for cliente in resultado_lista['lista_clientes']:
+            lv.controls.append(
+                ft.ListTile(
+                    leading=ft.Icon(ft.Icons.PERSON),
+                    title=ft.Text(f'{cliente["Nome"]}'),
+                    trailing=ft.PopupMenuButton(
+                        icon=ft.Icons(ft.Icons.MORE_VERT),
+                        items=[
+                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, c=cliente: info_cliente(c)),
+                        ]
+                    )
+                )
+            )
+
 
     def lista_veiculos():
         url = f"http://10.135.232.31:5000/lista_veiculos"
@@ -103,10 +123,28 @@ def main(page: ft.Page):
         resposta = requests.get(url)
 
         if resposta.status_code == 200:
-            print("Lista Veiculos:", resposta.json())
-            return resposta.json()
+            dados_veiculos = resposta.json()
+            print(dados_veiculos)
+            return dados_veiculos
         else:
             return {"erro": resposta.json()}
+
+    def exibir_veiculos():
+        lv.controls.clear()
+        resultado_lista = lista_veiculos()
+        for veiculo in resultado_lista['lista_veiculos']:
+            lv.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f' Veiculo: {veiculo["placa"]}'),
+                    trailing=ft.PopupMenuButton(
+                        icon=ft.Icons(ft.Icons.MORE_VERT),
+                        items=[
+                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, v=veiculo: info_veiculo(v)),
+                        ]
+                    )
+                )
+            )
+
 
     def lista_servicos():
         url = f"http://10.135.232.31:5000/lista_servicos"
@@ -114,10 +152,29 @@ def main(page: ft.Page):
         resposta = requests.get(url)
 
         if resposta.status_code == 200:
-            print("Lista Ordens:", resposta.json())
-            return resposta.json()
+            dados_servicos = resposta.json()
+            print(dados_servicos)
+            return dados_servicos
         else:
             return {"erro": resposta.json()}
+
+    def exibir_ordens():
+        lv.controls.clear()
+        resultado_lista = lista_servicos()
+        print(resultado_lista)
+        for servico in resultado_lista['ordens_serviço']:
+            lv.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f'{servico["veiculo"]}'),
+                    trailing=ft.PopupMenuButton(
+                        icon=ft.Icons(ft.Icons.MORE_VERT),
+                        items=[
+                            ft.PopupMenuItem(text="Ver mais informações", on_click=lambda _, s=servico: info_orden(s)),
+                        ]
+                    )
+                )
+            )
+
 
 
     def editar_cliente(id):
@@ -197,10 +254,10 @@ def main(page: ft.Page):
                 View(
                     "/segunda",
                     [
-                        AppBar(title=Text("Cadastros"), bgcolor=Colors.BLUE_600),
-                        ft.ElevatedButton(text="Cadastrar Cliente",on_click=lambda _: page.go("/quarta")),
-                        ft.ElevatedButton(text="Cadastrar Veiculo", on_click=lambda _: page.go("/quinta")),
-                        ft.ElevatedButton(text="Cadastrar Serviço", on_click=lambda _: page.go("/sexta")),
+                        AppBar(title=Text("Cadastros"), bgcolor=Colors.BLUE_300),
+                        ft.ElevatedButton(text="Cadastrar Cliente", color=Colors.WHITE, on_click=lambda _: page.go("/quarta")),
+                        ft.ElevatedButton(text="Cadastrar Veiculo", color=Colors.WHITE, on_click=lambda _: page.go("/quinta")),
+                        ft.ElevatedButton(text="Cadastrar Serviço", color=Colors.WHITE, on_click=lambda _: page.go("/sexta")),
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -213,10 +270,10 @@ def main(page: ft.Page):
                 View(
                     "/terceira",
                     [
-                        AppBar(title=Text("Listas"), bgcolor=Colors.BLUE_600),
-                        ft.ElevatedButton(text="Lista de Clientes",on_click=lambda _: page.go("/setima")),
-                        ft.ElevatedButton(text="Lista de Veiculos", on_click=lambda _: page.go("/oitava")),
-                        ft.ElevatedButton(text="Lista de Serviços", on_click=lambda _: page.go("/nona")),
+                        AppBar(title=Text("Listas"), bgcolor=Colors.BLUE_300),
+                        ft.ElevatedButton(text="Lista de Clientes", color=Colors.WHITE, on_click=lambda _: page.go("/setima")),
+                        ft.ElevatedButton(text="Lista de Veiculos", color=Colors.WHITE, on_click=lambda _: page.go("/oitava")),
+                        ft.ElevatedButton(text="Lista de Serviços", color=Colors.WHITE, on_click=lambda _: page.go("/nona")),
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -230,11 +287,99 @@ def main(page: ft.Page):
                     "/quarta",
                     [
                         AppBar(title=Text("Cadastro de Cliente"), bgcolor=Colors.BLUE_200),
+                        Text(value=f"Preencha os campos com seus dados", color=Colors.BLACK),
                         input_nome,
                         input_cpf,
                         input_telef,
                         input_ender,
-                        ElevatedButton(text="Enviar", on_click=lambda _: novo_cliente())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/quinta":
+            page.views.append(
+                View(
+                    "/quinta",
+                    [
+                        AppBar(title=Text("Cadastro de Veiculos"), bgcolor=Colors.BLUE_200),
+                        Text(value=f"Preencha os campos com os dados do veiculo", color=Colors.BLACK),
+                        input_marca,
+                        input_modelo,
+                        input_placa,
+                        input_ano,
+                        input_id_cliente,
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/sexta":
+            page.views.append(
+                View(
+                    "/sexta",
+                    [
+                        AppBar(title=Text("Cadastro de Serviços"), bgcolor=Colors.BLUE_200),
+                        Text(value=f"Preencha os campos com as informações do seviço", color=Colors.BLACK),
+                        input_veiculo,
+                        input_id_veiculo,
+                        input_data,
+                        input_descricao,
+                        input_status,
+                        input_valor,
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+
+        if page.route == "/setima":
+            exibir_clientes()
+            page.views.append(
+                View(
+                    "/setima",
+                    [
+                        AppBar(title=Text("Lista de Clientes"), bgcolor=Colors.BLUE_200),
+                        lv,
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/oitava":
+            exibir_veiculos()
+            page.views.append(
+                View(
+                    "/oitava",
+                    [
+                        AppBar(title=Text("Lista de Veiculos"), bgcolor=Colors.BLUE_200),
+                        lv,
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/nona":
+            exibir_ordens()
+            page.views.append(
+                View(
+                    "/nona",
+                    [
+                        AppBar(title=Text("Lista de Serviços"), bgcolor=Colors.BLUE_200),
+                        lv,
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -286,6 +431,9 @@ def main(page: ft.Page):
     input_valor= ft.TextField(label="Valor",hint_text="Valor do serviço")
 
 
+    lv = ft.ListView(
+        height=500
+    )
 
     btn_consultar = ft.FilledButton(
         text="Consultar",
