@@ -97,7 +97,7 @@ def main(page: ft.Page):
             print(dados_clientes)
             return dados_clientes
         else:
-            return {"erro": resposta.json()}
+            return resposta.json()
 
     def exibir_clientes():
         lv.controls.clear()
@@ -127,7 +127,7 @@ def main(page: ft.Page):
             print(dados_veiculos)
             return dados_veiculos
         else:
-            return {"erro": resposta.json()}
+            return resposta.json()
 
     def exibir_veiculos():
         lv.controls.clear()
@@ -156,7 +156,7 @@ def main(page: ft.Page):
             print(dados_servicos)
             return dados_servicos
         else:
-            return {"erro": resposta.json()}
+            return resposta.json()
 
     def exibir_ordens():
         lv.controls.clear()
@@ -177,32 +177,43 @@ def main(page: ft.Page):
 
 
 
-    def editar_cliente(id):
-        url = f"http://10.135.232.31:5000/editar_cliente{id}"
+    def editar_clientar():
+        global id_cliente_global
+        print(id_cliente_global)
+        url = f'http://10.135.232.20:5000/editar_livro/{id_cliente_global}'
 
-        editar_cliente = {
-            "nome": "",
-            "cpf": "",
-            "telefone":"",
-            "endereco": "",
+        cliente_atualizado = {
+            'nome': input_nome.value,
+            'cpf': input_cpf.value,
+            'telefone': input_telef.value,
+            'endereco': input_ender.value,
         }
 
-        response = requests.put(url, json=editar_cliente)
+        response = requests.put(url, json=cliente_atualizado)
 
         if response.status_code == 200:
-            dados_editar_cliente = response.json()
-            print(f"Nome: {dados_editar_cliente['nome']}")
-            print(f"CPF: {dados_editar_cliente['cpf']}")
-            print(f"Telefone: {dados_editar_cliente['telefone']}")
-            print(f"Endereco: {dados_editar_cliente['endereco']}")
-            return response
-
+            page.go("/lista_clientes")
+            page.update()
         else:
-            print(f"Erro: {response.status_code}")
             print(f' Erro: {response.json()}')
+            return {
+                "error": response.json()
+            }
+
+    def popular_input_cliente(cliente):
+        input_nome.value = nome['nome']
+        input_cpf.value = cpf['cpf']
+        input_telef.value = telefone['telefone']
+        input_ender.value = endereco['endereco']
+
+        global id_cliente_global
+        id_cliente_global = cliente['id']
+
+        page.go("/editar_cliente")
 
 
-    def mostrar():
+
+    def verificar_cliente():
         progress.visible = True
         page.update()
         if input_cpf.value == "" or input_telef.value == "":
@@ -210,10 +221,6 @@ def main(page: ft.Page):
             page.overlay.append(msg_error)
             msg_error.open = True
         else:
-            dados = get_info(int(input_cep.value))
-
-            progress.visible = False
-            page.update()
 
             if "erro" in dados:
                 page.overlay.append(msg_error)
@@ -224,11 +231,21 @@ def main(page: ft.Page):
                 page.go("/segunda")
 
                 input_cep.value = ""
-                msg_sucesso.content = ft.Text("CPF Valido")
+                msg_sucesso.open = ft.Text("CPF Valido")
                 page.overlay.append(msg_sucesso)
                 msg_sucesso.open = True
 
+
+
+            if input_nome.value or input_cpf.value == "" or input_telef.value == "" or input_ender.value == "":
+                msg_error.content = ft.Text("Preencha todos os campos")
+                page.overlay.append(msg_error)
+                msg_error.open = True
+
+                novo_cliente()
+
         page.update()
+
 
     def gerenciar_rotas(e):
         page.views.clear()
@@ -292,7 +309,7 @@ def main(page: ft.Page):
                         input_cpf,
                         input_telef,
                         input_ender,
-                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: verificar_cliente())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -312,7 +329,7 @@ def main(page: ft.Page):
                         input_placa,
                         input_ano,
                         input_id_cliente,
-                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: verificar())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -349,7 +366,8 @@ def main(page: ft.Page):
                     "/setima",
                     [
                         AppBar(title=Text("Lista de Clientes"), bgcolor=Colors.BLUE_200),
-                        lv,
+                        l++++++++v,
+                        ElevatedButton(text="Editar", color=Colors.WHITE, on_click=lambda _: editar_clientar())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -435,10 +453,20 @@ def main(page: ft.Page):
         height=500
     )
 
-    btn_consultar = ft.FilledButton(
-        text="Consultar",
+    btn_enviar = ft.FilledButton(
+        text="Enviar",
         width=page.window.width,
-        on_click=lambda _: mostrar()
+        on_click=lambda _: verificar()
+    )
+
+    msg_sucesso = ft.SnackBar(
+        content=ft.Text('Dados salvos com sucesso!'),
+        bgcolor=Colors.GREEN,
+    )
+
+    msg_erro = ft.SnackBar(
+        content=ft.Text('Preencha os campos!'),
+        bgcolor=Colors.RED,
     )
 
     txt_rua = ft.Text(size=16)
