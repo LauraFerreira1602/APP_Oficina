@@ -469,12 +469,6 @@ def main(page: ft.Page):
         bgcolor=Colors.RED,
     )
 
-    txt_rua = ft.Text(size=16)
-    lbl_rua = ft.Text(value="Logradouro:", size=18, weight=FontWeight.BOLD)
-
-    txt_bairro = ft.Text(size=16)
-    lbl_bairro = ft.Text(value="Bairro:", size=18, weight=FontWeight.BOLD)
-
 
     page.on_route_change = gerenciar_rotas
     page.on_view_pop = voltar
