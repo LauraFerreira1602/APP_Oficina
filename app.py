@@ -16,7 +16,7 @@ def main(page: ft.Page):
     # funçoes
 
     def novo_cliente():
-        url = "http://10.135.232.31:5000/novo_cliente"
+        url = "http://10.135.235.37:5000/novo_cliente"
 
         post_cliente = {
             "nome": input_nome.value,
@@ -38,7 +38,7 @@ def main(page: ft.Page):
             }
 
     def novo_veiculo():
-        url = "http://10.135.232.31:5000/novo_veiculo"
+        url = "http://10.135.235.37:5000/novo_veiculo"
 
         post_veiculo = {
             'marca': input_marca.value,
@@ -61,7 +61,7 @@ def main(page: ft.Page):
             }
 
     def novo_servico():
-        url = "http://10.135.232.31:5000/novo_veiculo"
+        url = "http://10.135.235.37:5000/novo_veiculo"
 
         post_servico = {
             "veiculo": input_veiculo.value,
@@ -88,21 +88,29 @@ def main(page: ft.Page):
 
 
     def lista_clientes():
-        url = f"http://10.135.232.31:5000/lista_clientes"
+        url = f"http://10.135.235.37:5000/lista_clientes"
 
         resposta = requests.get(url)
 
         if resposta.status_code == 200:
             dados_clientes = resposta.json()
             print(dados_clientes)
-            return dados_clientes
+            return dados_clientes['lista_clientes']
         else:
             return resposta.json()
+
+    def info_clientes(cliente):
+        txt_nome.value = (f'Nome: {cliente["Nome"]}')
+        txt_ender.value = (f'Endereço:{cliente["Endereco"]}')
+        txt_cpf.value = (f'CPF:{cliente["CPF"]}')
+        txt_telef.value = (f'Telefone:{cliente["telefone"]}')
+
+        page.go("/decima")
 
     def exibir_clientes():
         lv.controls.clear()
         resultado_lista = lista_clientes()
-        for cliente in resultado_lista['lista_clientes']:
+        for cliente in resultado_lista:
             lv.controls.append(
                 ft.ListTile(
                     leading=ft.Icon(ft.Icons.PERSON),
@@ -110,15 +118,16 @@ def main(page: ft.Page):
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons(ft.Icons.MORE_VERT),
                         items=[
-                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, c=cliente: info_cliente(c)),
+                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, c=cliente: info_clientes(c)),
                         ]
                     )
                 )
             )
 
 
+
     def lista_veiculos():
-        url = f"http://10.135.232.31:5000/lista_veiculos"
+        url = f"http://10.135.235.37:5000/lista_veiculos"
 
         resposta = requests.get(url)
 
@@ -128,6 +137,15 @@ def main(page: ft.Page):
             return dados_veiculos
         else:
             return resposta.json()
+
+    def info_veiculos(veiculo):
+        txt_marca.value = (f'Marca: {veiculo["Marca"]}')
+        txt_modelo.value = (f'Modelo:{veiculo["Modelo"]}')
+        txt_placa.value = (f'Placa:{veiculo["placa"]}')
+        txt_ano_fabri.value = (f'Ano de Fabricação:{veiculo["ano_fabri"]}')
+        txt_id_cliente.value = (f'ID Cliente:{veiculo["id_cliente"]}')
+
+        page.go("/onze")
 
     def exibir_veiculos():
         lv.controls.clear()
@@ -139,15 +157,16 @@ def main(page: ft.Page):
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons(ft.Icons.MORE_VERT),
                         items=[
-                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, v=veiculo: info_veiculo(v)),
+                            ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, v=veiculo: info_veiculos(v)),
                         ]
                     )
                 )
             )
 
 
+
     def lista_servicos():
-        url = f"http://10.135.232.31:5000/lista_servicos"
+        url = f"http://10.135.235.37:5000/lista_servicos"
 
         resposta = requests.get(url)
 
@@ -157,6 +176,17 @@ def main(page: ft.Page):
             return dados_servicos
         else:
             return resposta.json()
+
+    def info_servico(servico):
+        txt_veiculo.value = (f'Veiculo: {servico["veiculo"]}')
+        txt_id_veiculo.value = (f'ID Veiculo:{servico["id_veiculo"]}')
+        txt_data.value = (f'Data de entrada:{servico["data_abertura"]}')
+        txt_descricao.value = (f'Descrição:{servico["descricao"]}')
+        txt_status.value = (f'Status:{servico["status"]}')
+        txt_valor.value = (f'Valor:{servico["valor"]}')
+        txt_id_orden.value = (f'ID Orden:{servico["id_orden"]}')
+
+        page.go("/doze")
 
     def exibir_ordens():
         lv.controls.clear()
@@ -169,7 +199,7 @@ def main(page: ft.Page):
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons(ft.Icons.MORE_VERT),
                         items=[
-                            ft.PopupMenuItem(text="Ver mais informações", on_click=lambda _, s=servico: info_orden(s)),
+                            ft.PopupMenuItem(text="Ver mais informações", on_click=lambda _, s=servico: info_servico(s)),
                         ]
                     )
                 )
@@ -209,17 +239,30 @@ def main(page: ft.Page):
         global id_cliente_global
         id_cliente_global = cliente['id']
 
-        page.go("/editar_cliente")
+        page.go("/treze")
 
 
 
     def verificar_cliente():
         progress.visible = True
         page.update()
+        if input_nome.value == "" or input_cpf.value == "" or input_telef.value == "" or input_ender.value == "":
+            msg_error.content = ft.Text("Preencha todos os campos")
+            page.overlay.append(msg_error)
+            msg_error.open = True
+
         if input_cpf.value == "" or input_telef.value == "":
             msg_error.content = ft.Text("CPF ou Numero de Telefone Invalidos")
             page.overlay.append(msg_error)
             msg_error.open = True
+
+        resposta = novo_cliente()
+        if 'error' in resposta:
+            msg_error.content = ft.Text(resposta("error"))
+            page.overlay.append(msg_error)
+            msg_error.open = True
+            page.update()
+
         else:
 
             if "erro" in dados:
@@ -237,10 +280,7 @@ def main(page: ft.Page):
 
 
 
-            if input_nome.value or input_cpf.value == "" or input_telef.value == "" or input_ender.value == "":
-                msg_error.content = ft.Text("Preencha todos os campos")
-                page.overlay.append(msg_error)
-                msg_error.open = True
+
 
                 novo_cliente()
 
@@ -366,8 +406,8 @@ def main(page: ft.Page):
                     "/setima",
                     [
                         AppBar(title=Text("Lista de Clientes"), bgcolor=Colors.BLUE_200),
-                        l++++++++v,
-                        ElevatedButton(text="Editar", color=Colors.WHITE, on_click=lambda _: editar_clientar())
+                        lv,
+                        ElevatedButton(text="Editar", color=Colors.WHITE, on_click=lambda _: editar_cliente())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -404,6 +444,90 @@ def main(page: ft.Page):
                     bgcolor=Colors.BLUE_100
                 )
             )
+
+        if page.route == "/decima":
+            page.views.append(
+                View(
+                    "/decima",
+                    [
+                        AppBar(title=Text("Informaçoes sobre o cliente"), bgcolor=Colors.BLUE_200),
+                        txt_nome,
+                        txt_cpf,
+                        txt_telef,
+                        txt_ender,
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/onze":
+            page.views.append(
+                View(
+                    "/onze",
+                    [
+                        AppBar(title=Text("Informações sobre o Veiculo"), bgcolor=Colors.BLUE_200),
+                        txt_marca,
+                        txt_modelo,
+                        txt_placa,
+                        txt_ano_fabri,
+                        txt_id_cliente
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/doze":
+            page.views.append(
+                View(
+                    "/doze",
+                    [
+                        AppBar(title=Text("Informações sobre o Serviço"), bgcolor=Colors.BLUE_200),
+                        txt_veiculo,
+                        txt_id_veiculo,
+                        txt_data,
+                        txt_descricao,
+                        txt_status,
+                        txt_valor,
+                        txt_id_orden
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
+        if page.route == "/treze":
+            page.views.append(
+                View(
+                    "/treze",
+                    [
+                        AppBar(title=Text("Editar dados Cliente"), bgcolor=Colors.BLUE_200),
+                        input_nome,
+                        input_cpf,
+                        input_telef,
+                        input_ender,
+                        ElevatedButton(text="Enviar",
+                                       color=ft.Colors.WHITE,
+                                       on_click=lambda _: editar_clientar(),
+                                       bgcolor=Colors.BLACK,
+                                       width=page.window.width),
+                        ElevatedButton(text="Voltar",
+                                       color=ft.Colors.BLACK,
+                                       on_click=lambda _: page.go("/lista_cliente"),
+                                       bgcolor=Colors.WHITE,
+                                       width=page.window.width),
+
+                    ],
+                    vertical_alignment=MainAxisAlignment.CENTER,
+                    horizontal_alignment=CrossAxisAlignment.CENTER,
+                    bgcolor=Colors.BLUE_100
+                )
+            )
+
 
         page.update()
 
@@ -468,6 +592,26 @@ def main(page: ft.Page):
         content=ft.Text('Preencha os campos!'),
         bgcolor=Colors.RED,
     )
+
+
+    txt_nome = ft.Text()
+    txt_cpf = ft.Text()
+    txt_telef = ft.Text()
+    txt_ender = ft.Text()
+
+    txt_marca = ft.Text()
+    txt_modelo = ft.Text()
+    txt_placa = ft.Text()
+    txt_ano_fabri = ft.Text()
+    txt_id_cliente = ft.Text()
+
+    txt_veiculo = ft.Text()
+    txt_id_veiculo = ft.Text()
+    txt_data = ft.Text()
+    txt_descricao = ft.Text()
+    txt_status = ft.Text()
+    txt_valor = ft.Text()
+    txt_id_orden = ft.Text()
 
 
     page.on_route_change = gerenciar_rotas
