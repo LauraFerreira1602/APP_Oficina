@@ -25,17 +25,20 @@ def main(page: ft.Page):
             'endereco': input_ender.value
         }
 
-        verificar_cliente = requests.post(url, json=post_cliente)
+        dados_cliente_post = requests.post(url, json=post_cliente)
+        resposta = dados_cliente_post.json()
+        print(resposta)
 
-        if verificar_cliente.status_code == 201:
-            dados_post_cliente = verificar_cliente.json()
-            return dados_post_cliente
-
+        if "erro" in resposta:
+            msg_erro.content = ft.Text(resposta["erro"])
+            page.overlay.append(msg_erro)
+            msg_erro.open = True
+            page.update()
         else:
-            f"Error: {verificar_cliente.status_code}"
-            return {
-                "erro": novo_cliente.json()
-            }
+            print("Teste sucesso")
+            page.overlay.append(msg_sucesso)
+            msg_sucesso.open = True
+            page.update()
 
     def novo_veiculo():
         url = "http://10.135.235.37:5000/novo_veiculo"
@@ -48,16 +51,27 @@ def main(page: ft.Page):
             'id_cliente': input_id_cliente.value
         }
 
-        verificar_veiculo  = requests.post(url, json=post_veiculo)
+        dados_veiculo_post  = requests.post(url, json=post_veiculo)
+        resposta = dados_veiculo_post.json()
+        print(resposta)
 
-        if verificar_veiculo.status_code == 201:
-            dados_post_veiculo = verificar_veiculo.json()
+        if "erro" in resposta:
+            msg_erro.content = ft.Text(resposta["erro"])
+            page.overlay.append(msg_erro)
+            msg_erro.open = True
+            page.update()
+
+        if dados_veiculo_post.status_code == 201:
+            dados_post_veiculo = dados_veiculo_post.json()
             return dados_post_veiculo
 
+
+        if dados_veiculo_post.status_code == 201:
+            dados_post_veiculo = dados_veiculo_post.json()
+            return dados_post_veiculo
         else:
-            f"Error: {verificar_veiculo.status_code}"
             return {
-                "erro": novo_veiculo.json()
+                "erro": dados_veiculo_post.json()
             }
 
     def novo_servico():
@@ -72,20 +86,29 @@ def main(page: ft.Page):
             'valor': input_valor.value
         }
 
-        verificar_orden = requests.post(url, json=post_servico)
+        dados_servico_post = requests.post(url, json=post_servico)
+        resposta = dados_servico_post.json()
+        print(resposta)
 
-        if verificar_orden.status_code == 200:
-            dados_post_servico = verificar_orden.json()
+        if "erro" in resposta:
+            msg_erro.content = ft.Text(resposta["erro"])
+            page.overlay.append(msg_erro)
+            msg_erro.open = True
+            page.update()
+
+        if dados_servico_post.status_code == 201:
+            dados_post_servico = dados_servico_post.json()
             return dados_post_servico
 
 
+        if dados_servico_post.status_code == 200:
+            dados_post_servico = dados_servico_post.json()
+            return dados_post_servico
         else:
-            f"Error: {verificar_orden.status_code}"
+            print(f"Error: {verificar_orden.status_code}")
             return {
                 "erro": novo_servico.json()
             }
-
-
 
     def lista_clientes():
         url = f"http://10.135.235.37:5000/lista_clientes"
@@ -113,14 +136,15 @@ def main(page: ft.Page):
         for cliente in resultado_lista:
             lv.controls.append(
                 ft.ListTile(
-                    leading=ft.Icon(ft.Icons.PERSON),
-                    title=ft.Text(f'{cliente["Nome"]}'),
+                    leading=ft.Icon(ft.Icons.PERSON, color="blue"),
+                    title=ft.Text(f'{cliente["Nome"]}', color="white"),
                     trailing=ft.PopupMenuButton(
-                        icon=ft.Icons(ft.Icons.MORE_VERT),
+                        icon=ft.Icons.MORE_VERT,
+                        icon_color=ft.Colors.WHITE,
                         items=[
                             ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, c=cliente: info_clientes(c)),
                         ]
-                    )
+                    ),
                 )
             )
 
@@ -153,9 +177,10 @@ def main(page: ft.Page):
         for veiculo in resultado_lista['lista_veiculos']:
             lv.controls.append(
                 ft.ListTile(
-                    title=ft.Text(f' Veiculo: {veiculo["placa"]}'),
+                    title=ft.Text(f' Veiculo: {veiculo["placa"]}', color="white"),
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons(ft.Icons.MORE_VERT),
+                        icon_color=ft.Colors.WHITE,
                         items=[
                             ft.PopupMenuItem(text="Ver Dados", on_click=lambda _, v=veiculo: info_veiculos(v)),
                         ]
@@ -195,9 +220,10 @@ def main(page: ft.Page):
         for servico in resultado_lista['ordens_serviço']:
             lv.controls.append(
                 ft.ListTile(
-                    title=ft.Text(f'{servico["veiculo"]}'),
+                    title=ft.Text(f'{servico["veiculo"]}', color="white"),
                     trailing=ft.PopupMenuButton(
                         icon=ft.Icons(ft.Icons.MORE_VERT),
+                        icon_color=ft.Colors.WHITE,
                         items=[
                             ft.PopupMenuItem(text="Ver mais informações", on_click=lambda _, s=servico: info_servico(s)),
                         ]
@@ -207,84 +233,41 @@ def main(page: ft.Page):
 
 
 
-    def editar_clientar():
-        global id_cliente_global
-        print(id_cliente_global)
-        url = f'http://10.135.232.20:5000/editar_livro/{id_cliente_global}'
-
-        cliente_atualizado = {
-            'nome': input_nome.value,
-            'cpf': input_cpf.value,
-            'telefone': input_telef.value,
-            'endereco': input_ender.value,
-        }
-
-        response = requests.put(url, json=cliente_atualizado)
-
-        if response.status_code == 200:
-            page.go("/lista_clientes")
-            page.update()
-        else:
-            print(f' Erro: {response.json()}')
-            return {
-                "error": response.json()
-            }
-
-    def popular_input_cliente(cliente):
-        input_nome.value = nome['nome']
-        input_cpf.value = cpf['cpf']
-        input_telef.value = telefone['telefone']
-        input_ender.value = endereco['endereco']
-
-        global id_cliente_global
-        id_cliente_global = cliente['id']
-
-        page.go("/treze")
-
-
-
-    def verificar_cliente():
-        progress.visible = True
-        page.update()
-        if input_nome.value == "" or input_cpf.value == "" or input_telef.value == "" or input_ender.value == "":
-            msg_error.content = ft.Text("Preencha todos os campos")
-            page.overlay.append(msg_error)
-            msg_error.open = True
-
-        if input_cpf.value == "" or input_telef.value == "":
-            msg_error.content = ft.Text("CPF ou Numero de Telefone Invalidos")
-            page.overlay.append(msg_error)
-            msg_error.open = True
-
-        resposta = novo_cliente()
-        if 'error' in resposta:
-            msg_error.content = ft.Text(resposta("error"))
-            page.overlay.append(msg_error)
-            msg_error.open = True
-            page.update()
-
-        else:
-
-            if "erro" in dados:
-                page.overlay.append(msg_error)
-                msg_error.open = True
-            else:
-                txt_cpf.value = dados["input_cpf"].value
-                txt_telef.value = dados["input_telefone"].value
-                page.go("/segunda")
-
-                input_cep.value = ""
-                msg_sucesso.open = ft.Text("CPF Valido")
-                page.overlay.append(msg_sucesso)
-                msg_sucesso.open = True
+    # def editar_clientar():
+    #     global id_cliente_global
+    #     print(id_cliente_global)
+    #     url = f'http://10.135.232.20:5000/editar_livro/{id_cliente_global}'
+    #
+    #     cliente_atualizado = {
+    #         'nome': input_nome.value,
+    #         'cpf': input_cpf.value,
+    #         'telefone': input_telef.value,
+    #         'endereco': input_ender.value,
+    #     }
+    #
+    #     response = requests.put(url, json=cliente_atualizado)
+    #
+    #     if response.status_code == 200:
+    #         page.go("/lista_clientes")
+    #         page.update()
+    #     else:
+    #         print(f' Erro: {response.json()}')
+    #         return {
+    #             "error": response.json()
+    #         }
+    #
+    # def popular_input_cliente(cliente):
+    #     input_nome.value = nome['nome']
+    #     input_cpf.value = cpf['cpf']
+    #     input_telef.value = telefone['telefone']
+    #     input_ender.value = endereco['endereco']
+    #
+    #     global id_cliente_global
+    #     id_cliente_global = cliente['id']
+    #
+    #     page.go("/treze")
 
 
-
-
-
-                novo_cliente()
-
-        page.update()
 
 
     def gerenciar_rotas(e):
@@ -311,7 +294,7 @@ def main(page: ft.Page):
                 View(
                     "/segunda",
                     [
-                        AppBar(title=Text("Cadastros"), bgcolor=Colors.BLUE_300),
+                        AppBar(title=Text("Cadastros"), bgcolor=Colors.BLUE_300, color="white"),
                         ft.ElevatedButton(text="Cadastrar Cliente", color=Colors.WHITE, on_click=lambda _: page.go("/quarta")),
                         ft.ElevatedButton(text="Cadastrar Veiculo", color=Colors.WHITE, on_click=lambda _: page.go("/quinta")),
                         ft.ElevatedButton(text="Cadastrar Serviço", color=Colors.WHITE, on_click=lambda _: page.go("/sexta")),
@@ -327,7 +310,7 @@ def main(page: ft.Page):
                 View(
                     "/terceira",
                     [
-                        AppBar(title=Text("Listas"), bgcolor=Colors.BLUE_300),
+                        AppBar(title=Text("Listas"), bgcolor=Colors.BLUE_300, color="white"),
                         ft.ElevatedButton(text="Lista de Clientes", color=Colors.WHITE, on_click=lambda _: page.go("/setima")),
                         ft.ElevatedButton(text="Lista de Veiculos", color=Colors.WHITE, on_click=lambda _: page.go("/oitava")),
                         ft.ElevatedButton(text="Lista de Serviços", color=Colors.WHITE, on_click=lambda _: page.go("/nona")),
@@ -343,13 +326,13 @@ def main(page: ft.Page):
                 View(
                     "/quarta",
                     [
-                        AppBar(title=Text("Cadastro de Cliente"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Cadastro de Cliente"), bgcolor=Colors.BLUE_300, color="white"),
                         Text(value=f"Preencha os campos com seus dados", color=Colors.BLACK),
                         input_nome,
                         input_cpf,
                         input_telef,
                         input_ender,
-                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: verificar_cliente())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _:novo_cliente())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -362,14 +345,14 @@ def main(page: ft.Page):
                 View(
                     "/quinta",
                     [
-                        AppBar(title=Text("Cadastro de Veiculos"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Cadastro de Veiculos"), bgcolor=Colors.BLUE_300, color="white"),
                         Text(value=f"Preencha os campos com os dados do veiculo", color=Colors.BLACK),
                         input_marca,
                         input_modelo,
                         input_placa,
                         input_ano,
                         input_id_cliente,
-                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: verificar())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_veiculo())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -382,7 +365,7 @@ def main(page: ft.Page):
                 View(
                     "/sexta",
                     [
-                        AppBar(title=Text("Cadastro de Serviços"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Cadastro de Serviços"), bgcolor=Colors.BLUE_300, color="white"),
                         Text(value=f"Preencha os campos com as informações do seviço", color=Colors.BLACK),
                         input_veiculo,
                         input_id_veiculo,
@@ -390,7 +373,7 @@ def main(page: ft.Page):
                         input_descricao,
                         input_status,
                         input_valor,
-                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_cliente())
+                        ElevatedButton(text="Cadastrar-se", color=Colors.WHITE, on_click=lambda _: novo_servico())
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
                     horizontal_alignment=CrossAxisAlignment.CENTER,
@@ -405,7 +388,7 @@ def main(page: ft.Page):
                 View(
                     "/setima",
                     [
-                        AppBar(title=Text("Lista de Clientes"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Lista de Clientes"), bgcolor=Colors.BLUE_300, color="white"),
                         lv,
                         ElevatedButton(text="Editar", color=Colors.WHITE, on_click=lambda _: editar_cliente())
                     ],
@@ -421,7 +404,7 @@ def main(page: ft.Page):
                 View(
                     "/oitava",
                     [
-                        AppBar(title=Text("Lista de Veiculos"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Lista de Veiculos"), bgcolor=Colors.BLUE_300, color="white"),
                         lv,
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
@@ -436,7 +419,7 @@ def main(page: ft.Page):
                 View(
                     "/nona",
                     [
-                        AppBar(title=Text("Lista de Serviços"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Lista de Serviços"), bgcolor=Colors.BLUE_300, color="white"),
                         lv,
                     ],
                     vertical_alignment=MainAxisAlignment.CENTER,
@@ -450,7 +433,7 @@ def main(page: ft.Page):
                 View(
                     "/decima",
                     [
-                        AppBar(title=Text("Informaçoes sobre o cliente"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Informaçoes sobre o cliente"), bgcolor=Colors.BLUE_300, color="white"),
                         txt_nome,
                         txt_cpf,
                         txt_telef,
@@ -467,7 +450,7 @@ def main(page: ft.Page):
                 View(
                     "/onze",
                     [
-                        AppBar(title=Text("Informações sobre o Veiculo"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Informações sobre o Veiculo"), bgcolor=Colors.BLUE_300, color="white"),
                         txt_marca,
                         txt_modelo,
                         txt_placa,
@@ -485,7 +468,7 @@ def main(page: ft.Page):
                 View(
                     "/doze",
                     [
-                        AppBar(title=Text("Informações sobre o Serviço"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Informações sobre o Serviço"), bgcolor=Colors.BLUE_300, color="white"),
                         txt_veiculo,
                         txt_id_veiculo,
                         txt_data,
@@ -505,7 +488,7 @@ def main(page: ft.Page):
                 View(
                     "/treze",
                     [
-                        AppBar(title=Text("Editar dados Cliente"), bgcolor=Colors.BLUE_200),
+                        AppBar(title=Text("Editar dados Cliente"), bgcolor=Colors.BLUE_300, color="white"),
                         input_nome,
                         input_cpf,
                         input_telef,
@@ -543,34 +526,34 @@ def main(page: ft.Page):
     progress = ft.ProgressRing(visible=False)
 
     msg_sucesso = ft.SnackBar(
-        content=ft.Text(""),
+        content=ft.Text("Informações salvas com sucesso"),
         bgcolor=Colors.GREEN
     )
-    msg_error = ft.SnackBar(
+    msg_erro = ft.SnackBar(
         content=ft.Text(""),
         bgcolor=Colors.RED
     )
 
 
-    input_nome = ft.TextField(label="Nome",hint_text="Digite seu nome")
-    input_cpf = ft.TextField(label="CPF",hint_text="Digite seu cpf")
-    input_telef = ft.TextField(label="Telefone",hint_text="Digite seu telefone")
-    input_ender = ft.TextField(label="Endereço",hint_text="Digite seu endereço")
+    input_nome = ft.TextField(label="Nome",hint_text="Digite seu nome",color="black",fill_color="white")
+    input_cpf = ft.TextField(label="CPF",hint_text="Digite seu cpf",color="black",fill_color="white")
+    input_telef = ft.TextField(label="Telefone",hint_text="Digite seu telefone",color="black",fill_color="white")
+    input_ender = ft.TextField(label="Endereço",hint_text="Digite seu endereço",color="black",fill_color="white")
 
 
-    input_marca = ft.TextField(label="Marca",hint_text="Marca do veiculo")
-    input_modelo = ft.TextField(label="Modelo",hint_text="Modelo do veiculo")
-    input_placa = ft.TextField(label="Placa",hint_text="Placa do veiculo")
-    input_ano = ft.TextField(label="Ano de Fabricação",hint_text="Ano de fabricação")
-    input_id_cliente = ft.TextField(label="ID do Cliente",hint_text="Id do cliente responsavel pelo veiculo")
+    input_marca = ft.TextField(label="Marca",hint_text="Marca do veiculo",color="black",fill_color="white")
+    input_modelo = ft.TextField(label="Modelo",hint_text="Modelo do veiculo",color="black",fill_color="white")
+    input_placa = ft.TextField(label="Placa",hint_text="Placa do veiculo",color="black",fill_color="white")
+    input_ano = ft.TextField(label="Ano de Fabricação",hint_text="Ano de fabricação",color="black",fill_color="white")
+    input_id_cliente = ft.TextField(label="ID do Cliente",hint_text="Id do cliente responsavel pelo veiculo",color="black",fill_color="white")
 
 
-    input_veiculo = ft.TextField(label="Veiculo",hint_text="Veiculo")
-    input_id_veiculo= ft.TextField(label="ID do Veiculo",hint_text="Id do Veiculo em questão")
-    input_data= ft.TextField(label="ID do Veiculo",hint_text="Data de Abertura")
-    input_descricao= ft.TextField(label="Descrição",hint_text="Descricão do serviço")
-    input_status= ft.TextField(label="Status",hint_text="Status")
-    input_valor= ft.TextField(label="Valor",hint_text="Valor do serviço")
+    input_veiculo = ft.TextField(label="Veiculo",hint_text="Veiculo",color="black",fill_color="white")
+    input_id_veiculo= ft.TextField(label="ID do Veiculo",hint_text="Id do Veiculo em questão",color="black",fill_color="white")
+    input_data= ft.TextField(label="ID do Veiculo",hint_text="Data de Abertura",color="black",fill_color="white")
+    input_descricao= ft.TextField(label="Descrição",hint_text="Descricão do serviço",color="black",fill_color="white")
+    input_status= ft.TextField(label="Status",hint_text="Status",color="black",fill_color="white")
+    input_valor= ft.TextField(label="Valor",hint_text="Valor do serviço",color="black",fill_color="white")
 
 
     lv = ft.ListView(
@@ -583,35 +566,25 @@ def main(page: ft.Page):
         on_click=lambda _: verificar()
     )
 
-    msg_sucesso = ft.SnackBar(
-        content=ft.Text('Dados salvos com sucesso!'),
-        bgcolor=Colors.GREEN,
-    )
 
-    msg_erro = ft.SnackBar(
-        content=ft.Text('Preencha os campos!'),
-        bgcolor=Colors.RED,
-    )
+    txt_nome = ft.Text(Colors.BLACK)
+    txt_cpf = ft.Text(Colors.BLACK)
+    txt_telef = ft.Text(Colors.BLACK)
+    txt_ender = ft.Text(Colors.BLACK)
 
+    txt_marca = ft.Text(Colors.BLACK)
+    txt_modelo = ft.Text(Colors.BLACK)
+    txt_placa = ft.Text(Colors.BLACK)
+    txt_ano_fabri = ft.Text(Colors.BLACK)
+    txt_id_cliente = ft.Text(Colors.BLACK)
 
-    txt_nome = ft.Text()
-    txt_cpf = ft.Text()
-    txt_telef = ft.Text()
-    txt_ender = ft.Text()
-
-    txt_marca = ft.Text()
-    txt_modelo = ft.Text()
-    txt_placa = ft.Text()
-    txt_ano_fabri = ft.Text()
-    txt_id_cliente = ft.Text()
-
-    txt_veiculo = ft.Text()
-    txt_id_veiculo = ft.Text()
-    txt_data = ft.Text()
-    txt_descricao = ft.Text()
-    txt_status = ft.Text()
-    txt_valor = ft.Text()
-    txt_id_orden = ft.Text()
+    txt_veiculo = ft.Text(Colors.BLACK)
+    txt_id_veiculo = ft.Text(Colors.BLACK)
+    txt_data = ft.Text(Colors.BLACK)
+    txt_descricao = ft.Text(Colors.BLACK)
+    txt_status = ft.Text(Colors.BLACK)
+    txt_valor = ft.Text(Colors.BLACK)
+    txt_id_orden = ft.Text(Colors.BLACK)
 
 
     page.on_route_change = gerenciar_rotas
